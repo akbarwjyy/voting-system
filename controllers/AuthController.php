@@ -1,6 +1,6 @@
 <?php
-// Definisikan path root project
-define('ROOT_PATH', dirname(dirname(__FILE__)));
+// Include constants file first
+require_once __DIR__ . '/../config/constants.php';
 
 // Include files dengan path absolut
 require_once ROOT_PATH . '/config/database.php';
@@ -9,6 +9,14 @@ require_once ROOT_PATH . '/models/Admin.php';
 
 class AuthController
 {
+    // Helper method untuk mengelola session
+    private static function startSession()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+    }
+
     private $db;
     private $user;
     private $admin;
@@ -100,7 +108,7 @@ class AuthController
         // Proses login
         if ($this->user->masukUser()) {
             // Set session
-            session_start();
+            self::startSession();
             $_SESSION['user_id'] = $this->user->id;
             $_SESSION['user_nama'] = $this->user->nama;
             $_SESSION['user_email'] = $this->user->email;
@@ -138,7 +146,7 @@ class AuthController
         // Proses login
         if ($this->admin->masukAdmin()) {
             // Set session
-            session_start();
+            self::startSession();
             $_SESSION['admin_id'] = $this->admin->id;
             $_SESSION['admin_username'] = $this->admin->username;
             $_SESSION['user_type'] = 'admin';
@@ -159,7 +167,7 @@ class AuthController
     // Proses logout
     public function prosesLogout()
     {
-        session_start();
+        self::startSession();
         session_unset();
         session_destroy();
 
@@ -170,7 +178,7 @@ class AuthController
     // Cek apakah user sudah login
     public static function cekLoginUser()
     {
-        session_start();
+        self::startSession();
         if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'user') {
             header("Location: ../auth/login.php?type=user");
             exit();
@@ -180,7 +188,7 @@ class AuthController
     // Cek apakah admin sudah login
     public static function cekLoginAdmin()
     {
-        session_start();
+        self::startSession();
         if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'admin') {
             header("Location: ../auth/login.php?type=admin");
             exit();
@@ -190,7 +198,7 @@ class AuthController
     // Cek apakah sudah login (redirect ke dashboard masing-masing)
     public static function cekSudahLogin()
     {
-        session_start();
+        self::startSession();
         if (isset($_SESSION['user_type'])) {
             if ($_SESSION['user_type'] === 'admin') {
                 header("Location: views/admin/dashboard.php");

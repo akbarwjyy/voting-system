@@ -1,9 +1,12 @@
 <?php
-require_once '../config/database.php';
-require_once '../models/User.php';
-require_once '../models/Admin.php';
-require_once '../models/Vote.php';
-require_once '../models/Candidate.php';
+// Include constants file first
+require_once __DIR__ . '/../config/constants.php';
+
+require_once ROOT_PATH . '/config/database.php';
+require_once ROOT_PATH . '/models/User.php';
+require_once ROOT_PATH . '/models/Admin.php';
+require_once ROOT_PATH . '/models/Vote.php';
+require_once ROOT_PATH . '/models/Candidate.php';
 
 class AdminController
 {
