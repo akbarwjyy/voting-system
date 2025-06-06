@@ -23,39 +23,23 @@ $pesan_error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
+    require_once(__DIR__ . '/../../config/database.php');
+    require_once(__DIR__ . '/../../controllers/AuthController.php');
 
-    require_once('../../config/database.php');
+    $auth = new AuthController();
 
     if ($is_admin) {
-        $query = "SELECT * FROM admin WHERE username = ?";
+        $hasil = $auth->prosesLoginAdmin($username, $password);
     } else {
-        $query = "SELECT * FROM users WHERE username = ?";
+        $hasil = $auth->prosesLoginUser($username, $password);
     }
-
-    $stmt = $koneksi->prepare($query);
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $hasil = $stmt->get_result();
-
-    if ($hasil->num_rows > 0) {
-        $pengguna = $hasil->fetch_assoc();
-        if (password_verify($password, $pengguna['password'])) {
-            $_SESSION['user_id'] = $pengguna['id'];
-            $_SESSION['username'] = $pengguna['username'];
-            $_SESSION['user_type'] = $is_admin ? 'admin' : 'user';
-
-            // Redirect sesuai tipe user
-            header("Location: ../" . ($_SESSION['user_type'] === 'admin' ? 'admin' : 'user') . "/dashboard.php");
-            exit();
-        } else {
-            $pesan_error = 'Password yang Anda masukkan salah!';
-        }
+    if ($hasil['sukses']) {
+        // Redirect ke halaman yang sesuai
+        header("Location: " . $hasil['redirect']);
+        exit();
     } else {
-        $pesan_error = 'Username tidak ditemukan!';
+        $pesan_error = $hasil['pesan'];
     }
-
-    $stmt->close();
-    $koneksi->close();
 }
 ?>
 

@@ -1,7 +1,11 @@
 <?php
-require_once '../config/database.php';
-require_once '../models/User.php';
-require_once '../models/Admin.php';
+// Definisikan path root project
+define('ROOT_PATH', dirname(dirname(__FILE__)));
+
+// Include files dengan path absolut
+require_once ROOT_PATH . '/config/database.php';
+require_once ROOT_PATH . '/models/User.php';
+require_once ROOT_PATH . '/models/Admin.php';
 
 class AuthController
 {

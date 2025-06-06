@@ -98,6 +98,19 @@ class Vote
         return $stmt;
     }
 
+    // Hitung jumlah vote untuk satu kandidat
+    public function getJumlahVoteKandidat($kandidat_id)
+    {
+        $query = "SELECT COUNT(*) as jumlah FROM " . $this->nama_tabel . " 
+                  WHERE candidate_id = :kandidat_id";
+
+        $stmt = $this->koneksi->prepare($query);
+        $stmt->bindParam(':kandidat_id', $kandidat_id);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC)['jumlah'];
+    }
+
     // Hitung total semua suara
     public function hitungTotalSuara()
     {

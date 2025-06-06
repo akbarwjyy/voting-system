@@ -14,29 +14,30 @@ class Candidate
     public function __construct($database_koneksi)
     {
         $this->koneksi = $database_koneksi;
-    }
-
-    // Tambah kandidat baru
-    public function tambahKandidat()
+    }    // Tambah kandidat baru
+    public function tambahKandidat($data)
     {
         $query = "INSERT INTO " . $this->nama_tabel . " 
                   SET nama = :nama, 
                       visi = :visi, 
                       misi = :misi, 
-                      foto = :foto";
+                      foto = :foto,
+                      no_urut = :no_urut";
 
         $stmt = $this->koneksi->prepare($query);
 
         // Bersihkan data
-        $this->nama = htmlspecialchars(strip_tags($this->nama));
-        $this->visi = htmlspecialchars(strip_tags($this->visi));
-        $this->misi = htmlspecialchars(strip_tags($this->misi));
-        $this->foto = htmlspecialchars(strip_tags($this->foto));
+        $nama = htmlspecialchars(strip_tags($data['nama']));
+        $visi = htmlspecialchars(strip_tags($data['visi']));
+        $misi = htmlspecialchars(strip_tags($data['misi']));
+        $foto = htmlspecialchars(strip_tags($data['foto']));
+        $no_urut = htmlspecialchars(strip_tags($data['no_urut']));
 
-        $stmt->bindParam(":nama", $this->nama);
-        $stmt->bindParam(":visi", $this->visi);
-        $stmt->bindParam(":misi", $this->misi);
-        $stmt->bindParam(":foto", $this->foto);
+        $stmt->bindParam(":nama", $nama);
+        $stmt->bindParam(":visi", $visi);
+        $stmt->bindParam(":misi", $misi);
+        $stmt->bindParam(":foto", $foto);
+        $stmt->bindParam(":no_urut", $no_urut);
 
         return $stmt->execute();
     }
@@ -68,29 +69,33 @@ class Candidate
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Update kandidat
-    public function updateKandidat()
+    // Update kandidat    
+    public function updateKandidat($data)
     {
         $query = "UPDATE " . $this->nama_tabel . " 
                   SET nama = :nama, 
                       visi = :visi, 
                       misi = :misi, 
-                      foto = :foto 
+                      foto = :foto,
+                      no_urut = :no_urut 
                   WHERE id = :id";
 
         $stmt = $this->koneksi->prepare($query);
 
         // Bersihkan data
-        $this->nama = htmlspecialchars(strip_tags($this->nama));
-        $this->visi = htmlspecialchars(strip_tags($this->visi));
-        $this->misi = htmlspecialchars(strip_tags($this->misi));
-        $this->foto = htmlspecialchars(strip_tags($this->foto));
+        $nama = htmlspecialchars(strip_tags($data['nama']));
+        $visi = htmlspecialchars(strip_tags($data['visi']));
+        $misi = htmlspecialchars(strip_tags($data['misi']));
+        $foto = htmlspecialchars(strip_tags($data['foto']));
+        $no_urut = htmlspecialchars(strip_tags($data['no_urut']));
+        $id = htmlspecialchars(strip_tags($data['id']));
 
-        $stmt->bindParam(":nama", $this->nama);
-        $stmt->bindParam(":visi", $this->visi);
-        $stmt->bindParam(":misi", $this->misi);
-        $stmt->bindParam(":foto", $this->foto);
-        $stmt->bindParam(":id", $this->id);
+        $stmt->bindParam(":nama", $nama);
+        $stmt->bindParam(":visi", $visi);
+        $stmt->bindParam(":misi", $misi);
+        $stmt->bindParam(":foto", $foto);
+        $stmt->bindParam(":no_urut", $no_urut);
+        $stmt->bindParam(":id", $id);
 
         return $stmt->execute();
     }
