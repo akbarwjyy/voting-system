@@ -35,8 +35,7 @@ $data = $statistik['data'];
                         Admin Panel
                     </span>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-gray-600">
+                <div class="flex items-center space-x-4"> <span class="text-gray-600">
                         <i class="fas fa-user mr-2"></i>
                         <?php echo $_SESSION['admin_username']; ?>
                     </span>

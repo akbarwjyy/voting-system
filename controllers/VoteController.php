@@ -1,8 +1,12 @@
 <?php
-require_once '../config/database.php';
-require_once '../models/Vote.php';
-require_once '../models/User.php';
-require_once '../models/Candidate.php';
+// Include constants file first
+require_once __DIR__ . '/../config/constants.php';
+
+// Include files dengan path absolut
+require_once ROOT_PATH . '/config/database.php';
+require_once ROOT_PATH . '/models/Vote.php';
+require_once ROOT_PATH . '/models/User.php';
+require_once ROOT_PATH . '/models/Candidate.php';
 
 class VoteController
 {
@@ -88,6 +92,37 @@ class VoteController
             'sudah_memilih' => $this->vote->cekSudahMemilih($user_id)
         ];
     }
+
+    // Cek status voting (aktif/tidak)
+    public function cekStatusVoting()
+    {
+        try {
+            $query = "SELECT status FROM voting_settings WHERE id = 1";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute();
+
+            if ($stmt->rowCount() > 0) {
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                return [
+                    'sukses' => true,
+                    'voting_aktif' => (bool)$result['status'],
+                    'pesan' => (bool)$result['status'] ? 'Voting sedang berlangsung' : 'Voting belum dimulai atau sudah berakhir'
+                ];
+            }
+
+            return [
+                'sukses' => true,
+                'voting_aktif' => false,
+                'pesan' => 'Status voting belum diatur'
+            ];
+        } catch (PDOException $e) {
+            return [
+                'sukses' => false,
+                'voting_aktif' => false,
+                'pesan' => 'Terjadi kesalahan saat mengecek status voting'
+            ];
+        }
+    }
 }
 
 // Handle AJAX requests
@@ -119,6 +154,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     'data' => $voteController->cekStatusMemilih($_POST['user_id'])
                 ];
             }
+            break;
+
+        case 'cek_status_voting':
+            $hasil = $voteController->cekStatusVoting();
             break;
 
         default:

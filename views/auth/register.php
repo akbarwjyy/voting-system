@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once(__DIR__ . '/../../controllers/AuthController.php');
 
 // Redirect jika sudah login
 if (isset($_SESSION['user_type'])) {
@@ -18,63 +19,24 @@ $pesan_sukses = '';
 
 // Proses registrasi
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once('../../config/database.php');    // Ambil data dari form
+    $auth = new AuthController();
+
+    // Ambil data dari form
     $nama = trim($_POST['nama'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $konfirmasi_password = $_POST['konfirmasi_password'] ?? '';
 
-    // Validasi input
-    $error = false;    // Validasi nama
-    if (empty($nama)) {
-        $pesan_error = 'Nama harus diisi!';
-        $error = true;
-    }
+    // Proses registrasi menggunakan AuthController
+    $hasil = $auth->prosesRegistrasi($nama, $email, $password, $konfirmasi_password);
 
-    // Validasi email
-    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $pesan_error = 'Email tidak valid!';
-        $error = true;
+    if ($hasil['sukses']) {
+        $pesan_sukses = $hasil['pesan'];
+        // Redirect ke halaman login setelah 2 detik
+        header("refresh:2;url=login.php");
     } else {
-        // Cek email sudah digunakan atau belum
-        $query = "SELECT id FROM users WHERE email = ?";
-        $stmt = $koneksi->prepare($query);
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        if ($stmt->get_result()->num_rows > 0) {
-            $pesan_error = 'Email sudah digunakan!';
-            $error = true;
-        }
-        $stmt->close();
+        $pesan_error = $hasil['pesan'];
     }
-
-    // Validasi password
-    if (strlen($password) < 6) {
-        $pesan_error = 'Password minimal 6 karakter!';
-        $error = true;
-    } elseif ($password !== $konfirmasi_password) {
-        $pesan_error = 'Konfirmasi password tidak sesuai!';
-        $error = true;
-    }    // Jika tidak ada error, simpan ke database
-    if (!$error) {
-        $password_hash = password_hash($password, PASSWORD_DEFAULT);
-        $is_active = false; // Default inactive until admin approval
-
-        $query = "INSERT INTO users (nama, email, password, is_active, sudah_memilih) VALUES (?, ?, ?, ?, ?)";
-        $stmt = $koneksi->prepare($query);
-        $stmt->bind_param("sssii", $nama, $email, $password_hash, $is_active, false);
-
-        if ($stmt->execute()) {
-            $pesan_sukses = 'Registrasi berhasil! Akun Anda akan aktif setelah diverifikasi oleh admin.';
-            // Redirect ke halaman login setelah 2 detik
-            header("refresh:2;url=login.php");
-        } else {
-            $pesan_error = 'Terjadi kesalahan! Silakan coba lagi.';
-        }
-        $stmt->close();
-    }
-
-    $koneksi->close();
 }
 ?>
 

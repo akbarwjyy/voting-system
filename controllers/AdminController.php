@@ -29,11 +29,28 @@ class AdminController
     // Mendapatkan daftar semua user
     public function getDaftarUser()
     {
-        $stmt = $this->user->ambilSemuaUser();
-        return [
-            'sukses' => true,
-            'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)
-        ];
+        $query = "SELECT id, nama, email, is_active, sudah_memilih FROM users ORDER BY tanggal_daftar DESC";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Aktivasi akun user
+    public function aktivasiUser($user_id)
+    {
+        $query = "UPDATE users SET is_active = 1 WHERE id = :user_id";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':user_id', $user_id);
+        return $stmt->execute();
+    }
+
+    // Deaktivasi akun user
+    public function deaktivasiUser($user_id)
+    {
+        $query = "UPDATE users SET is_active = 0 WHERE id = :user_id";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':user_id', $user_id);
+        return $stmt->execute();
     }
 
     // Mengaktifkan atau menonaktifkan user
@@ -134,40 +151,27 @@ class AdminController
         ];
     }
 
-    // Mendapatkan statistik untuk dashboard
+    // Mengambil statistik untuk dashboard admin
     public function getStatistikDashboard()
     {
-        // Total user
-        $query_users = "SELECT 
-            COUNT(*) as total_user,
-            SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as total_aktif,
-            SUM(CASE WHEN sudah_memilih = 1 THEN 1 ELSE 0 END) as total_voted
-            FROM users";
-        $stmt_users = $this->db->query($query_users);
-        $stats_users = $stmt_users->fetch(PDO::FETCH_ASSOC);
+        $query = "SELECT 
+            (SELECT COUNT(*) FROM users) as total_user,
+            (SELECT COUNT(*) FROM users WHERE is_active = 1) as total_aktif,
+            (SELECT COUNT(*) FROM users WHERE sudah_memilih = 1) as total_voted,
+            (SELECT COUNT(*) FROM candidates) as total_kandidat";
 
-        // Total kandidat
-        $query_kandidat = "SELECT COUNT(*) as total_kandidat FROM candidates";
-        $stmt_kandidat = $this->db->query($query_kandidat);
-        $stats_kandidat = $stmt_kandidat->fetch(PDO::FETCH_ASSOC);
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Statistik voting
-        $persentase_aktif = $stats_users['total_user'] > 0 ?
-            round(($stats_users['total_aktif'] / $stats_users['total_user']) * 100, 2) : 0;
-
-        $persentase_voted = $stats_users['total_aktif'] > 0 ?
-            round(($stats_users['total_voted'] / $stats_users['total_aktif']) * 100, 2) : 0;
+        // Hitung persentase partisipasi
+        $persentase_voted = ($result['total_aktif'] > 0)
+            ? round(($result['total_voted'] / $result['total_aktif']) * 100)
+            : 0;
 
         return [
             'sukses' => true,
-            'data' => [
-                'total_user' => $stats_users['total_user'],
-                'total_aktif' => $stats_users['total_aktif'],
-                'total_voted' => $stats_users['total_voted'],
-                'total_kandidat' => $stats_kandidat['total_kandidat'],
-                'persentase_aktif' => $persentase_aktif,
-                'persentase_voted' => $persentase_voted
-            ]
+            'data' => array_merge($result, ['persentase_voted' => $persentase_voted])
         ];
     }
 }
