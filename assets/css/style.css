@@ -1,0 +1,180 @@
+/* Custom Styles untuk Sistem E-Voting */
+
+/* Animasi loading */
+.loading-spinner {
+  border: 3px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 3px solid #3498db;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Custom card hover effects */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom button styles */
+.btn-vote {
+  background: linear-gradient(135deg, #4f46e5, #3b82f6);
+  transition: all 0.3s ease;
+}
+
+.btn-vote:hover {
+  background: linear-gradient(135deg, #3b82f6, #4f46e5);
+  transform: scale(1.02);
+}
+
+/* Progress bar animation */
+.progress-bar {
+  transition: width 0.5s ease-in-out;
+}
+
+/* Custom badges */
+.badge-active {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.badge-inactive {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+/* Kandidat card styles */
+.kandidat-card {
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.kandidat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.kandidat-image {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.kandidat-card:hover .kandidat-image {
+  transform: scale(1.05);
+}
+
+/* Form input focus effects */
+.input-focus {
+  transition: all 0.3s ease;
+}
+
+.input-focus:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Alert styles */
+.alert-success {
+  background: linear-gradient(to right, #d1fae5, #ecfdf5);
+  border-left: 4px solid #059669;
+}
+
+.alert-error {
+  background: linear-gradient(to right, #fee2e2, #fef2f2);
+  border-left: 4px solid #dc2626;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* Dashboard stat cards */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: rotate(45deg);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover::after {
+  transform: rotate(45deg) translate(50%, 50%);
+}
+
+/* Vote confirmation modal */
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  transform: scale(0.95);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.modal-content.show {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  body {
+    background: white;
+  }
+
+  .container {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}
