@@ -1,13 +1,14 @@
 <?php
-require_once '../config/database.php';
-require_once '../models/Candidate.php';
-require_once '../models/Vote.php';
+require_once(__DIR__ . '/../config/database.php');
+require_once(__DIR__ . '/../models/Candidate.php');
+require_once(__DIR__ . '/../models/Vote.php');
 
 class CandidateController
 {
     private $db;
     private $candidate;
     private $vote;
+    private $upload_dir;
 
     public function __construct()
     {
@@ -15,6 +16,12 @@ class CandidateController
         $this->db = $database->getKoneksi();
         $this->candidate = new Candidate($this->db);
         $this->vote = new Vote($this->db);
+        $this->upload_dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'kandidat' . DIRECTORY_SEPARATOR;
+
+        // Create upload directory if it doesn't exist
+        if (!file_exists($this->upload_dir)) {
+            mkdir($this->upload_dir, 0777, true);
+        }
     }
 
     // Mendapatkan semua kandidat
@@ -34,10 +41,18 @@ class CandidateController
     public function tambahKandidat($data, $foto)
     {
         // Validasi input
-        if (empty($data['nama']) || empty($data['visi']) || empty($data['misi'])) {
+        if (empty($data['nama']) || empty($data['visi']) || empty($data['misi']) || empty($data['no_urut'])) {
             return [
                 'sukses' => false,
                 'pesan' => 'Semua field harus diisi!'
+            ];
+        }
+
+        // Validasi no_urut unik
+        if ($this->candidate->cekNomorUrut($data['no_urut'])) {
+            return [
+                'sukses' => false,
+                'pesan' => 'Nomor urut sudah digunakan!'
             ];
         }
 
@@ -46,7 +61,7 @@ class CandidateController
         if (isset($foto['foto']) && $foto['foto']['error'] === UPLOAD_ERR_OK) {
             $foto_tmp = $foto['foto']['tmp_name'];
             $foto_name = uniqid() . '_' . basename($foto['foto']['name']);
-            $foto_path = '../assets/uploads/kandidat/' . $foto_name;
+            $foto_path = $this->upload_dir . $foto_name;
 
             // Validasi tipe file
             $allowed = ['jpg', 'jpeg', 'png'];
@@ -58,29 +73,41 @@ class CandidateController
                 ];
             }
 
+            // Validasi ukuran file (max 2MB)
+            if ($foto['foto']['size'] > 2 * 1024 * 1024) {
+                return [
+                    'sukses' => false,
+                    'pesan' => 'Ukuran foto terlalu besar! Maksimal 2MB.'
+                ];
+            }
+
             // Pindahkan file
             if (!move_uploaded_file($foto_tmp, $foto_path)) {
                 return [
                     'sukses' => false,
-                    'pesan' => 'Gagal mengupload foto!'
+                    'pesan' => 'Gagal mengupload foto! Pastikan folder memiliki permission yang benar.'
                 ];
             }
         }
 
-        // Simpan data kandidat
-        $kandidat = [
+        $result = $this->candidate->tambahKandidat([
             'nama' => $data['nama'],
-            'foto' => $foto_name,
+            'no_urut' => $data['no_urut'],
             'visi' => $data['visi'],
             'misi' => $data['misi'],
-            'no_urut' => $data['no_urut']
-        ];
+            'foto' => $foto_name
+        ]);
 
-        if ($this->candidate->tambahKandidat($kandidat)) {
+        if ($result) {
             return [
                 'sukses' => true,
                 'pesan' => 'Kandidat berhasil ditambahkan!'
             ];
+        }
+
+        // Jika gagal, hapus foto yang sudah diupload
+        if ($foto_name && file_exists($this->upload_dir . $foto_name)) {
+            unlink($this->upload_dir . $foto_name);
         }
 
         return [
@@ -93,10 +120,18 @@ class CandidateController
     public function updateKandidat($id, $data, $foto = null)
     {
         // Validasi input
-        if (empty($data['nama']) || empty($data['visi']) || empty($data['misi'])) {
+        if (empty($data['nama']) || empty($data['visi']) || empty($data['misi']) || empty($data['no_urut'])) {
             return [
                 'sukses' => false,
                 'pesan' => 'Semua field harus diisi!'
+            ];
+        }
+
+        // Validasi no_urut unik (kecuali untuk kandidat yang sedang diupdate)
+        if ($this->candidate->cekNomorUrut($data['no_urut'], $id)) {
+            return [
+                'sukses' => false,
+                'pesan' => 'Nomor urut sudah digunakan!'
             ];
         }
 
@@ -114,7 +149,7 @@ class CandidateController
         if (isset($foto['foto']) && $foto['foto']['error'] === UPLOAD_ERR_OK) {
             $foto_tmp = $foto['foto']['tmp_name'];
             $foto_name = uniqid() . '_' . basename($foto['foto']['name']);
-            $foto_path = '../assets/uploads/kandidat/' . $foto_name;
+            $foto_path = $this->upload_dir . $foto_name;
 
             // Validasi tipe file
             $allowed = ['jpg', 'jpeg', 'png'];
@@ -123,6 +158,14 @@ class CandidateController
                 return [
                     'sukses' => false,
                     'pesan' => 'Format foto tidak valid! Gunakan JPG, JPEG, atau PNG.'
+                ];
+            }
+
+            // Validasi ukuran file (max 2MB)
+            if ($foto['foto']['size'] > 2 * 1024 * 1024) {
+                return [
+                    'sukses' => false,
+                    'pesan' => 'Ukuran foto terlalu besar! Maksimal 2MB.'
                 ];
             }
 
@@ -135,31 +178,29 @@ class CandidateController
             }
 
             // Hapus foto lama jika ada
-            if ($kandidat_lama['foto'] && file_exists('../assets/uploads/kandidat/' . $kandidat_lama['foto'])) {
-                unlink('../assets/uploads/kandidat/' . $kandidat_lama['foto']);
+            if ($kandidat_lama['foto'] && file_exists($this->upload_dir . $kandidat_lama['foto'])) {
+                unlink($this->upload_dir . $kandidat_lama['foto']);
             }
         }
 
-        // Update data kandidat
-        $kandidat = [
-            'id' => $id,
+        $result = $this->candidate->updateKandidat($id, [
             'nama' => $data['nama'],
-            'foto' => $foto_name,
+            'no_urut' => $data['no_urut'],
             'visi' => $data['visi'],
             'misi' => $data['misi'],
-            'no_urut' => $data['no_urut']
-        ];
+            'foto' => $foto_name
+        ]);
 
-        if ($this->candidate->updateKandidat($kandidat)) {
+        if ($result) {
             return [
                 'sukses' => true,
-                'pesan' => 'Data kandidat berhasil diperbarui!'
+                'pesan' => 'Kandidat berhasil diupdate!'
             ];
         }
 
         return [
             'sukses' => false,
-            'pesan' => 'Gagal memperbarui data kandidat!'
+            'pesan' => 'Gagal mengupdate kandidat!'
         ];
     }
 
@@ -177,7 +218,7 @@ class CandidateController
         // Ambil data kandidat untuk hapus foto
         $kandidat = $this->candidate->ambilKandidatById($id);
         if ($kandidat && $kandidat['foto']) {
-            $foto_path = '../assets/uploads/kandidat/' . $kandidat['foto'];
+            $foto_path = $this->upload_dir . $kandidat['foto'];
             if (file_exists($foto_path)) {
                 unlink($foto_path);
             }
@@ -206,54 +247,84 @@ class CandidateController
     {
         return $this->ambilKandidatById($id);
     }
+
+    // Method untuk handle AJAX request
+    public function handleAjaxRequest($action, $data = [], $files = [])
+    {
+        header('Content-Type: application/json');
+
+        switch ($action) {
+            case 'tambah':
+                $hasil = $this->tambahKandidat($data, $files);
+                echo json_encode($hasil);
+                break;
+
+            case 'update':
+                if (isset($data['id'])) {
+                    $hasil = $this->updateKandidat($data['id'], $data, $files);
+                    echo json_encode($hasil);
+                }
+                break;
+
+            case 'hapus':
+                if (isset($data['id'])) {
+                    $hasil = $this->hapusKandidat($data['id']);
+                    echo json_encode($hasil);
+                }
+                break;
+
+            case 'get_detail':
+                if (isset($data['id'])) {
+                    $kandidat = $this->ambilKandidatById($data['id']);
+                    echo json_encode([
+                        'sukses' => true,
+                        'data' => $kandidat
+                    ]);
+                }
+                break;
+
+            default:
+                echo json_encode([
+                    'sukses' => false,
+                    'pesan' => 'Action tidak valid!'
+                ]);
+        }
+        exit;
+    }
+
+    // Method untuk handle form submission biasa
+    public function handleFormSubmission($action, $data = [], $files = [])
+    {
+        switch ($action) {
+            case 'tambah':
+                return $this->tambahKandidat($data, $files);
+
+            case 'update':
+                if (isset($data['id'])) {
+                    return $this->updateKandidat($data['id'], $data, $files);
+                }
+                break;
+
+            case 'hapus':
+                if (isset($data['id'])) {
+                    return $this->hapusKandidat($data['id']);
+                }
+                break;
+        }
+
+        return [
+            'sukses' => false,
+            'pesan' => 'Action tidak valid!'
+        ];
+    }
 }
 
 // Handle AJAX requests
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    $kandidatController = new CandidateController();
-    $hasil = [];
-
-    switch ($_POST['action']) {
-        case 'tambah':
-            $hasil = $kandidatController->tambahKandidat($_POST, $_FILES);
-            break;
-
-        case 'update':
-            if (isset($_POST['id'])) {
-                $hasil = $kandidatController->updateKandidat($_POST['id'], $_POST, $_FILES);
-            }
-            break;
-
-        case 'hapus':
-            if (isset($_POST['id'])) {
-                $hasil = $kandidatController->hapusKandidat($_POST['id']);
-            }
-            break;
-
-        case 'get_all':
-            $hasil = [
-                'sukses' => true,
-                'data' => $kandidatController->ambilSemuaKandidat()
-            ];
-            break;
-
-        case 'get_detail':
-            if (isset($_POST['id'])) {
-                $hasil = [
-                    'sukses' => true,
-                    'data' => $kandidatController->ambilKandidatById($_POST['id'])
-                ];
-            }
-            break;
-
-        default:
-            $hasil = [
-                'sukses' => false,
-                'pesan' => 'Action tidak valid!'
-            ];
-    }
-
-    // Return JSON response untuk AJAX
-    header('Content-Type: application/json');
-    echo json_encode($hasil);
+if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+    $controller = new CandidateController();
+    $controller->handleAjaxRequest(
+        $_POST['action'] ?? '',
+        $_POST,
+        $_FILES
+    );
 }

@@ -14,40 +14,67 @@ class Candidate
     public function __construct($database_koneksi)
     {
         $this->koneksi = $database_koneksi;
-    }    // Tambah kandidat baru
-    public function tambahKandidat($data)
+    }    // Cek apakah nomor urut sudah digunakan
+    public function cekNomorUrut($no_urut, $id = null)
     {
-        $query = "INSERT INTO " . $this->nama_tabel . " 
-                  SET nama = :nama, 
-                      visi = :visi, 
-                      misi = :misi, 
-                      foto = :foto,
-                      no_urut = :no_urut";
+        $query = "SELECT COUNT(*) as total FROM " . $this->nama_tabel . " WHERE no_urut = :no_urut";
+        if ($id !== null) {
+            $query .= " AND id != :id";
+        }
 
         $stmt = $this->koneksi->prepare($query);
-
-        // Bersihkan data
-        $nama = htmlspecialchars(strip_tags($data['nama']));
-        $visi = htmlspecialchars(strip_tags($data['visi']));
-        $misi = htmlspecialchars(strip_tags($data['misi']));
-        $foto = htmlspecialchars(strip_tags($data['foto']));
-        $no_urut = htmlspecialchars(strip_tags($data['no_urut']));
-
-        $stmt->bindParam(":nama", $nama);
-        $stmt->bindParam(":visi", $visi);
-        $stmt->bindParam(":misi", $misi);
-        $stmt->bindParam(":foto", $foto);
         $stmt->bindParam(":no_urut", $no_urut);
+        if ($id !== null) {
+            $stmt->bindParam(":id", $id);
+        }
+        $stmt->execute();
 
-        return $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['total'] > 0;
     }
 
-    // Ambil semua kandidat
+    // Tambah kandidat baru
+    public function tambahKandidat($data)
+    {
+        try {
+            // Cek apakah nomor urut sudah digunakan
+            if ($this->cekNomorUrut($data['no_urut'])) {
+                throw new Exception("Nomor urut " . $data['no_urut'] . " sudah digunakan!");
+            }
+
+            $query = "INSERT INTO " . $this->nama_tabel . " 
+                    SET nama = :nama, 
+                        visi = :visi, 
+                        misi = :misi, 
+                        foto = :foto,
+                        no_urut = :no_urut";
+
+            $stmt = $this->koneksi->prepare($query);
+
+            // Bersihkan data
+            $nama = htmlspecialchars(strip_tags($data['nama']));
+            $visi = htmlspecialchars(strip_tags($data['visi']));
+            $misi = htmlspecialchars(strip_tags($data['misi']));
+            $foto = htmlspecialchars(strip_tags($data['foto']));
+            $no_urut = htmlspecialchars(strip_tags($data['no_urut']));
+
+            $stmt->bindParam(":nama", $nama);
+            $stmt->bindParam(":visi", $visi);
+            $stmt->bindParam(":misi", $misi);
+            $stmt->bindParam(":foto", $foto);
+            $stmt->bindParam(":no_urut", $no_urut);
+
+            $stmt->execute();
+            return ['sukses' => true, 'pesan' => 'Kandidat berhasil ditambahkan!'];
+        } catch (Exception $e) {
+            return ['sukses' => false, 'pesan' => $e->getMessage()];
+        }
+    }    // Ambil semua kandidat
     public function ambilSemuaKandidat()
     {
-        $query = "SELECT id, nama, visi, misi, foto, tanggal_dibuat 
+        $query = "SELECT id, nama, visi, misi, foto, no_urut, tanggal_dibuat 
                   FROM " . $this->nama_tabel . " 
-                  ORDER BY tanggal_dibuat ASC";
+                  ORDER BY no_urut ASC";
 
         $stmt = $this->koneksi->prepare($query);
         $stmt->execute();
@@ -58,7 +85,7 @@ class Candidate
     // Ambil kandidat berdasarkan ID
     public function ambilKandidatById($kandidat_id)
     {
-        $query = "SELECT id, nama, visi, misi, foto, tanggal_dibuat 
+        $query = "SELECT id, nama, visi, misi, foto, no_urut, tanggal_dibuat 
                   FROM " . $this->nama_tabel . " 
                   WHERE id = :id LIMIT 1";
 
@@ -72,32 +99,42 @@ class Candidate
     // Update kandidat    
     public function updateKandidat($data)
     {
-        $query = "UPDATE " . $this->nama_tabel . " 
-                  SET nama = :nama, 
-                      visi = :visi, 
-                      misi = :misi, 
-                      foto = :foto,
-                      no_urut = :no_urut 
-                  WHERE id = :id";
+        try {
+            // Cek apakah nomor urut sudah digunakan oleh kandidat lain
+            if ($this->cekNomorUrut($data['no_urut'], $data['id'])) {
+                throw new Exception("Nomor urut " . $data['no_urut'] . " sudah digunakan!");
+            }
 
-        $stmt = $this->koneksi->prepare($query);
+            $query = "UPDATE " . $this->nama_tabel . " 
+                    SET nama = :nama, 
+                        visi = :visi, 
+                        misi = :misi, 
+                        foto = :foto,
+                        no_urut = :no_urut 
+                    WHERE id = :id";
 
-        // Bersihkan data
-        $nama = htmlspecialchars(strip_tags($data['nama']));
-        $visi = htmlspecialchars(strip_tags($data['visi']));
-        $misi = htmlspecialchars(strip_tags($data['misi']));
-        $foto = htmlspecialchars(strip_tags($data['foto']));
-        $no_urut = htmlspecialchars(strip_tags($data['no_urut']));
-        $id = htmlspecialchars(strip_tags($data['id']));
+            $stmt = $this->koneksi->prepare($query);
 
-        $stmt->bindParam(":nama", $nama);
-        $stmt->bindParam(":visi", $visi);
-        $stmt->bindParam(":misi", $misi);
-        $stmt->bindParam(":foto", $foto);
-        $stmt->bindParam(":no_urut", $no_urut);
-        $stmt->bindParam(":id", $id);
+            // Bersihkan data
+            $nama = htmlspecialchars(strip_tags($data['nama']));
+            $visi = htmlspecialchars(strip_tags($data['visi']));
+            $misi = htmlspecialchars(strip_tags($data['misi']));
+            $foto = htmlspecialchars(strip_tags($data['foto']));
+            $no_urut = htmlspecialchars(strip_tags($data['no_urut']));
+            $id = htmlspecialchars(strip_tags($data['id']));
 
-        return $stmt->execute();
+            $stmt->bindParam(":nama", $nama);
+            $stmt->bindParam(":visi", $visi);
+            $stmt->bindParam(":misi", $misi);
+            $stmt->bindParam(":foto", $foto);
+            $stmt->bindParam(":no_urut", $no_urut);
+            $stmt->bindParam(":id", $id);
+
+            $stmt->execute();
+            return ['sukses' => true, 'pesan' => 'Data kandidat berhasil diperbarui!'];
+        } catch (Exception $e) {
+            return ['sukses' => false, 'pesan' => $e->getMessage()];
+        }
     }
 
     // Hapus kandidat
