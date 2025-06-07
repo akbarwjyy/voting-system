@@ -38,21 +38,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pesan_error = $hasil['pesan'];
     }
 }
+
+// Set page title
+$pageTitle = "Registrasi Pemilih";
+
+// Custom CSS untuk halaman registrasi
+$customCSS = '<style>
+    .register-container {
+        backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.95);
+    }
+</style>';
+
+include('../includes/header.php');
 ?>
 
-<!DOCTYPE html>
-<html lang="id">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrasi Pemilih - Sistem Voting</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
-
-<body class="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md backdrop-blur-sm bg-opacity-95">
+<!-- Main Content -->
+<div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md register-container">
         <div class="text-center mb-8">
             <h1 class="text-2xl font-bold text-gray-800">Registrasi Pemilih</h1>
             <p class="text-gray-600 mt-2">Daftar untuk berpartisipasi dalam voting</p>
@@ -113,6 +116,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </p>
         </div>
     </div>
-</body>
+</div>
 
-</html>
+<?php include('../includes/footer.php'); ?>

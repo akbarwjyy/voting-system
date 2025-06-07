@@ -15,7 +15,9 @@ class CandidateController
         $this->db = $database->getKoneksi();
         $this->candidate = new Candidate($this->db);
         $this->vote = new Vote($this->db);
-    }    // Mendapatkan semua kandidat
+    }
+
+    // Mendapatkan semua kandidat
     public function ambilSemuaKandidat()
     {
         $stmt = $this->candidate->ambilSemuaKandidat();
@@ -96,7 +98,9 @@ class CandidateController
                 'sukses' => false,
                 'pesan' => 'Semua field harus diisi!'
             ];
-        }        // Ambil data kandidat lama
+        }
+
+        // Ambil data kandidat lama
         $kandidat_lama = $this->candidate->ambilKandidatById($id);
         if (!$kandidat_lama) {
             return [
@@ -168,7 +172,9 @@ class CandidateController
                 'sukses' => false,
                 'pesan' => 'Tidak dapat menghapus kandidat yang sudah memiliki vote!'
             ];
-        }        // Ambil data kandidat untuk hapus foto
+        }
+
+        // Ambil data kandidat untuk hapus foto
         $kandidat = $this->candidate->ambilKandidatById($id);
         if ($kandidat && $kandidat['foto']) {
             $foto_path = '../assets/uploads/kandidat/' . $kandidat['foto'];
@@ -188,6 +194,17 @@ class CandidateController
             'sukses' => false,
             'pesan' => 'Gagal menghapus kandidat!'
         ];
+    }
+
+    // Aliases for backward compatibility
+    public function getDaftarKandidat()
+    {
+        return $this->ambilSemuaKandidat();
+    }
+
+    public function getKandidatById($id)
+    {
+        return $this->ambilKandidatById($id);
     }
 }
 
@@ -212,6 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $hasil = $kandidatController->hapusKandidat($_POST['id']);
             }
             break;
+
         case 'get_all':
             $hasil = [
                 'sukses' => true,

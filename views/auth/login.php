@@ -41,27 +41,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pesan_error = $hasil['pesan'];
     }
 }
+
+// Set judul halaman
+$pageTitle = $is_admin ? 'Login Admin' : 'Login Pemilih';
+
+// Custom CSS untuk halaman login
+$customCSS = '
+<style>
+    body {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    }
+    .login-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 1rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+</style>';
+
+// Include header
+require_once('../includes/header.php');
 ?>
 
-<!DOCTYPE html>
-<html lang="id">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $is_admin ? 'Login Admin' : 'Login Pemilih'; ?> - Sistem Voting</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
-
-<body class="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 min-h-screen flex items-center justify-center">
-    <div class="bg-white p-8 rounded-2xl shadow-2xl w-96 backdrop-blur-sm bg-opacity-95">
-        <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-gray-800">
-                <?php echo $is_admin ? 'Login Admin' : 'Login Pemilih'; ?>
-            </h1>
-            <p class="text-gray-600 mt-2">Silakan masuk untuk melanjutkan</p>
-        </div>
+<div class="flex-grow flex items-center justify-center p-4">
+    <div class="login-card w-full max-w-md p-8">
+        <h2 class="text-3xl font-bold text-center mb-2"><?php echo $is_admin ? 'Login Admin' : 'Login Pemilih'; ?></h2>
+        <p class="text-gray-600 text-center mb-8">Silakan masuk untuk melanjutkan</p>
 
         <?php if ($pesan_error): ?>
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
@@ -71,46 +76,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form method="POST" class="space-y-6">
             <div>
-                <label for="username" class="block text-sm font-medium text-gray-700">Email</label>
-                <div class="mt-1">
-                    <input id="username" name="username" type="text" required
-                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                </div>
+                <label for="username" class="block text-sm font-medium text-gray-700 mb-1">
+                    <?php echo $is_admin ? 'Username' : 'Email'; ?>
+                </label>
+                <input type="<?php echo $is_admin ? 'text' : 'email'; ?>" id="username" name="username" required
+                    class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
             </div>
 
             <div>
-                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                <div class="mt-1">
-                    <input id="password" name="password" type="password" required
-                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                </div>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input type="password" id="password" name="password" required
+                    class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
             </div>
 
-            <div> <button type="submit"
-                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition duration-300">
-                    <i class="fas fa-sign-in-alt mr-2"></i> Masuk
+            <div>
+                <button type="submit"
+                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Masuk
                 </button>
             </div>
-        </form>
 
-        <?php if (!$is_admin): ?>
-            <div class="mt-4 text-center text-sm">
-                <p class="text-gray-600">
-                    Belum punya akun?
-                    <a href="register.php" class="font-medium text-indigo-600 hover:text-indigo-500">
-                        Daftar disini
-                    </a>
+            <div class="text-center">
+                <?php if (!$is_admin): ?>
+                    <p class="text-sm text-gray-600">
+                        Belum punya akun?
+                        <a href="register.php" class="font-medium text-blue-600 hover:text-blue-500">
+                            Daftar disini
+                        </a>
+                    </p>
+                <?php endif; ?>
+
+                <p class="mt-2 text-sm text-gray-600">
+                    <?php if ($is_admin): ?>
+                        <a href="?type=user" class="font-medium text-blue-600 hover:text-blue-500">
+                            Login sebagai Pemilih
+                        </a>
+                    <?php else: ?>
+                        <a href="?type=admin" class="font-medium text-blue-600 hover:text-blue-500">
+                            Login sebagai Admin
+                        </a>
+                    <?php endif; ?>
                 </p>
             </div>
-        <?php endif; ?>
-
-        <div class="mt-4 text-center text-sm">
-            <a href="login.php<?php echo $is_admin ? '' : '?type=admin'; ?>"
-                class="font-medium text-gray-600 hover:text-gray-500">
-                <?php echo $is_admin ? 'Login sebagai Pemilih' : 'Login sebagai Admin'; ?>
-            </a>
-        </div>
+        </form>
     </div>
-</body>
+</div>
 
-</html>
+<?php require_once('../includes/footer.php'); ?>
