@@ -3,9 +3,9 @@
 require_once __DIR__ . '/../config/constants.php';
 
 // Include files dengan path absolut
-require_once ROOT_PATH . '/config/database.php';
-require_once ROOT_PATH . '/models/User.php';
-require_once ROOT_PATH . '/models/Admin.php';
+require_once BASE_PATH . '/config/database.php';
+require_once BASE_PATH . '/models/User.php';
+require_once BASE_PATH . '/models/Admin.php';
 
 class AuthController
 {

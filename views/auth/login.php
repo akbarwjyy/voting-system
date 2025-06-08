@@ -1,13 +1,16 @@
 <?php
 session_start();
 
+// Include constants file first
+require_once(__DIR__ . '/../../config/constants.php');
+
 // Redirect jika sudah login
 if (isset($_SESSION['user_type'])) {
     if ($_SESSION['user_type'] === 'admin') {
-        header("Location: ../admin/dashboard.php");
+        header("Location: " . ROOT_PATH . "/views/admin/dashboard.php");
         exit();
     } else if ($_SESSION['user_type'] === 'user') {
-        header("Location: ../user/dashboard.php");
+        header("Location: " . ROOT_PATH . "/views/user/dashboard.php");
         exit();
     }
 }

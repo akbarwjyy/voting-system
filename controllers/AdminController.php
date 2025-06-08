@@ -2,11 +2,11 @@
 // Include constants file first
 require_once __DIR__ . '/../config/constants.php';
 
-require_once ROOT_PATH . '/config/database.php';
-require_once ROOT_PATH . '/models/User.php';
-require_once ROOT_PATH . '/models/Admin.php';
-require_once ROOT_PATH . '/models/Vote.php';
-require_once ROOT_PATH . '/models/Candidate.php';
+require_once BASE_PATH . '/config/database.php';
+require_once BASE_PATH . '/models/User.php';
+require_once BASE_PATH . '/models/Admin.php';
+require_once BASE_PATH . '/models/Vote.php';
+require_once BASE_PATH . '/models/Candidate.php';
 
 class AdminController
 {
@@ -15,6 +15,7 @@ class AdminController
     private $admin;
     private $vote;
     private $candidate;
+    private $votingSetting;
 
     public function __construct()
     {
@@ -24,6 +25,10 @@ class AdminController
         $this->admin = new Admin($this->db);
         $this->vote = new Vote($this->db);
         $this->candidate = new Candidate($this->db);
+
+        // Initialize VotingSetting
+        require_once BASE_PATH . '/models/VotingSetting.php';
+        $this->votingSetting = new VotingSetting($this->db);
     }
 
     // Mendapatkan daftar semua user
@@ -174,6 +179,57 @@ class AdminController
             'data' => array_merge($result, ['persentase_voted' => $persentase_voted])
         ];
     }
+
+    // Method untuk mendapatkan status voting
+    public function getStatusVoting()
+    {
+        $status = $this->votingSetting->getStatus();
+        return ['status' => $status];
+    }
+
+    // Method untuk mengupdate pengaturan voting
+    public function updateStatusVoting($data)
+    {
+        // Validasi input
+        if (empty($data['waktu_mulai']) || empty($data['waktu_selesai'])) {
+            return [
+                'sukses' => false,
+                'pesan' => 'Waktu mulai dan waktu selesai harus diisi'
+            ];
+        }
+
+        // Validasi waktu
+        $waktuMulai = new DateTime($data['waktu_mulai']);
+        $waktuSelesai = new DateTime($data['waktu_selesai']);
+
+        if ($waktuSelesai <= $waktuMulai) {
+            return [
+                'sukses' => false,
+                'pesan' => 'Waktu selesai harus lebih besar dari waktu mulai'
+            ];
+        }
+
+        // Update pengaturan
+        $result = $this->votingSetting->updateStatus([
+            'waktu_mulai' => $data['waktu_mulai'],
+            'waktu_selesai' => $data['waktu_selesai'],
+            'judul_voting' => $data['judul_voting'] ?? 'Pemilihan Ketua'
+        ]);
+
+        if ($result['sukses']) {
+            $status = $this->votingSetting->getStatus();
+            $pesanStatus = $status['voting_aktif'] ?
+                'Voting akan aktif selama periode yang ditentukan.' :
+                'Voting akan aktif saat memasuki waktu yang ditentukan.';
+
+            return [
+                'sukses' => true,
+                'pesan' => 'Pengaturan voting berhasil diperbarui. ' . $pesanStatus
+            ];
+        }
+
+        return $result;
+    }
 }
 
 // Handle AJAX requests
@@ -219,6 +275,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         case 'get_statistik':
             $hasil = $adminController->getStatistikDashboard();
+            break;
+
+        case 'get_status_voting':
+            $hasil = $adminController->getStatusVoting();
+            break;
+
+        case 'update_status_voting':
+            if (isset($_POST['status'])) {
+                $hasil = $adminController->updateStatusVoting($_POST['status'] === 'true');
+            }
             break;
 
         default:

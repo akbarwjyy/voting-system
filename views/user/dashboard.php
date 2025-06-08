@@ -1,6 +1,9 @@
 <?php
-require_once(__DIR__ . '/../../controllers/AuthController.php');
-require_once(__DIR__ . '/../../controllers/VoteController.php');
+// Include constants file first
+require_once(__DIR__ . '/../../config/constants.php');
+
+require_once(BASE_PATH . '/controllers/AuthController.php');
+require_once(BASE_PATH . '/controllers/VoteController.php');
 
 // Cek apakah user sudah login
 AuthController::cekLoginUser();
@@ -11,7 +14,7 @@ $statusVoting = $voteController->cekStatusVoting();
 
 // Set page title
 $pageTitle = "Dashboard Pemilih";
-include('../includes/header.php');
+include(BASE_PATH . '/views/includes/header.php');
 ?>
 
 <!-- Main Content -->
@@ -31,21 +34,24 @@ include('../includes/header.php');
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="text-lg font-semibold text-gray-800 mb-2">Status Voting</h2>
-                <?php if ($statusVoting['voting_aktif']): ?>
+                <?php
+                $isVotingActive = $statusVoting['sukses'] && $statusVoting['voting_aktif'];
+                $message = $statusVoting['pesan'] ?? ($isVotingActive ? 'Voting Sedang Berlangsung' : 'Voting Belum Dimulai / Sudah Berakhir');
+                ?>
+                <?php if ($isVotingActive): ?>
                     <p class="text-green-600">
                         <i class="fas fa-circle text-green-500 mr-2"></i>
-                        Voting Sedang Berlangsung
+                        <?php echo $message; ?>
                     </p>
                 <?php else: ?>
                     <p class="text-red-600">
                         <i class="fas fa-circle text-red-500 mr-2"></i>
-                        Voting Belum Dimulai / Sudah Berakhir
+                        <?php echo $message; ?>
                     </p>
                 <?php endif; ?>
             </div>
             <div>
-                <?php if (!$_SESSION['sudah_memilih'] && $statusVoting['voting_aktif']): ?>
-                    <a href="../voting/pilih.php"
+                <?php if (!$_SESSION['sudah_memilih'] && $isVotingActive): ?> <a href="<?php echo ROOT_PATH; ?>/voting/pilih.php"
                         class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200">
                         <i class="fas fa-vote-yea mr-2"></i>
                         Mulai Voting
@@ -63,9 +69,8 @@ include('../includes/header.php');
     </div>
 
     <!-- Quick Links -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Lihat Kandidat -->
-        <a href="kandidat.php"
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6"> <!-- Lihat Kandidat -->
+        <a href="<?php echo ROOT_PATH; ?>/views/user/kandidat.php"
             class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
             <div class="flex items-center">
                 <div class="p-3 rounded-full bg-blue-100">
@@ -79,7 +84,7 @@ include('../includes/header.php');
         </a>
 
         <!-- Lihat Hasil -->
-        <a href="../voting/hasil.php"
+        <a href="<?php echo ROOT_PATH; ?>/voting/hasil.php"
             class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
             <div class="flex items-center">
                 <div class="p-3 rounded-full bg-green-100">
@@ -116,4 +121,4 @@ include('../includes/header.php');
     </div>
 </div>
 
-<?php include('../includes/footer.php'); ?>
+<?php include(BASE_PATH . '/views/includes/footer.php'); ?>

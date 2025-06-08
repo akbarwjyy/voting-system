@@ -1,7 +1,11 @@
 <?php
-require_once(__DIR__ . '/../config/database.php');
-require_once(__DIR__ . '/../models/Candidate.php');
-require_once(__DIR__ . '/../models/Vote.php');
+// Include constants file first
+require_once(__DIR__ . '/../config/constants.php');
+
+// Include required files
+require_once(BASE_PATH . '/config/database.php');
+require_once(BASE_PATH . '/models/Candidate.php');
+require_once(BASE_PATH . '/models/Vote.php');
 
 class CandidateController
 {

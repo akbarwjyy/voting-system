@@ -17,7 +17,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"> <!-- Custom CSS -->
-    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo ROOT_PATH; ?>/assets/css/style.css">
 
     <!-- Optional: Custom page specific CSS -->
     <?php if (isset($customCSS)) echo $customCSS; ?>
@@ -33,8 +33,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <nav class="bg-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="<?php echo isset($_SESSION['user_type']) ? ($_SESSION['user_type'] === 'admin' ? '/voting-system/views/admin/dashboard.php' : '/voting-system/views/user/dashboard.php') : '/voting-system/index.php'; ?>"
+                <div class="flex items-center"> <a href="<?php echo ROOT_PATH . (isset($_SESSION['user_type']) ? ($_SESSION['user_type'] === 'admin' ? '/views/admin/dashboard.php' : '/views/user/dashboard.php') : '/index.php'); ?>"
                         class="text-2xl font-semibold text-gray-800">
                         <i class="fas fa-vote-yea text-blue-600 mr-2"></i>
                         <?php echo isset($_SESSION['user_type']) ? ($_SESSION['user_type'] === 'admin' ? 'Admin Panel' : 'Panel Pemilih') : 'E-Voting'; ?>
@@ -46,8 +45,7 @@ if (session_status() === PHP_SESSION_NONE) {
                         <span class="text-gray-600">
                             <i class="fas fa-user mr-2"></i>
                             <?php echo isset($_SESSION['admin_username']) ? $_SESSION['admin_username'] : $_SESSION['user_nama']; ?>
-                        </span>
-                        <a href="/voting-system/logout.php" class="text-red-600 hover:text-red-700">
+                        </span> <a href="<?php echo ROOT_PATH; ?>/logout.php" class="text-red-600 hover:text-red-700">
                             <i class="fas fa-sign-out-alt mr-1"></i>
                             Logout
                         </a>

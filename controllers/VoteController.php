@@ -3,10 +3,11 @@
 require_once __DIR__ . '/../config/constants.php';
 
 // Include files dengan path absolut
-require_once ROOT_PATH . '/config/database.php';
-require_once ROOT_PATH . '/models/Vote.php';
-require_once ROOT_PATH . '/models/User.php';
-require_once ROOT_PATH . '/models/Candidate.php';
+require_once BASE_PATH . '/config/database.php';
+require_once BASE_PATH . '/models/Vote.php';
+require_once BASE_PATH . '/models/User.php';
+require_once BASE_PATH . '/models/Candidate.php';
+require_once BASE_PATH . '/models/VotingSetting.php';
 
 class VoteController
 {
@@ -14,7 +15,7 @@ class VoteController
     private $vote;
     private $user;
     private $candidate;
-
+    private $votingSetting;
     public function __construct()
     {
         $database = new Database();
@@ -22,11 +23,19 @@ class VoteController
         $this->vote = new Vote($this->db);
         $this->user = new User($this->db);
         $this->candidate = new Candidate($this->db);
-    }
-
-    // Memproses voting dari user
+        $this->votingSetting = new VotingSetting($this->db);
+    }    // Memproses voting dari user
     public function prosesVoting($user_id, $kandidat_id)
     {
+        // Cek apakah voting sedang aktif
+        $statusVoting = $this->cekStatusVoting();
+        if (!$statusVoting['voting_aktif']) {
+            return [
+                'sukses' => false,
+                'pesan' => $statusVoting['pesan']
+            ];
+        }
+
         // Cek apakah user sudah memilih
         if ($this->vote->cekSudahMemilih($user_id)) {
             return [
@@ -59,69 +68,70 @@ class VoteController
             'sukses' => false,
             'pesan' => 'Gagal melakukan voting!'
         ];
-    }
-
-    // Mendapatkan hasil voting
+    }    // Mendapatkan hasil voting
     public function getHasilVoting()
     {
-        $stmt = $this->vote->hitungSuaraPerKandidat();
-        $hasil = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->vote->hitungSuaraPerKandidat();
+            $hasil = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Hitung total suara
-        $total_suara = 0;
-        foreach ($hasil as $data) {
-            $total_suara += intval($data['jumlah_suara']);
-        }
+            // Hitung total suara
+            $total_suara = 0;
+            foreach ($hasil as $data) {
+                $total_suara += intval($data['jumlah_suara']);
+            }
 
-        // Tambahkan persentase
-        foreach ($hasil as &$data) {
-            $data['persentase'] = $total_suara > 0 ?
-                round((intval($data['jumlah_suara']) / $total_suara) * 100, 2) : 0;
+            // Tambahkan persentase
+            foreach ($hasil as &$data) {
+                $data['persentase'] = $total_suara > 0 ?
+                    round((intval($data['jumlah_suara']) / $total_suara) * 100, 2) : 0;
+            }
+
+            return [
+                'hasil' => $hasil,
+                'total_suara' => $total_suara
+            ];
+        } catch (Exception $e) {
+            return [
+                'hasil' => [],
+                'total_suara' => 0,
+                'error' => $e->getMessage()
+            ];
         }
 
         return [
             'hasil' => $hasil,
             'total_suara' => $total_suara
         ];
-    }
-
-    // Cek status memilih user
+    }    // Cek status memilih user
     public function cekStatusMemilih($user_id)
     {
         return [
             'sudah_memilih' => $this->vote->cekSudahMemilih($user_id)
         ];
-    }
-
-    // Cek status voting (aktif/tidak)
+    }    // Cek status voting
     public function cekStatusVoting()
     {
-        try {
-            $query = "SELECT status FROM voting_settings WHERE id = 1";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute();
+        $status = $this->votingSetting->getStatus();
 
-            if ($stmt->rowCount() > 0) {
-                $result = $stmt->fetch(PDO::FETCH_ASSOC);
-                return [
-                    'sukses' => true,
-                    'voting_aktif' => (bool)$result['status'],
-                    'pesan' => (bool)$result['status'] ? 'Voting sedang berlangsung' : 'Voting belum dimulai atau sudah berakhir'
-                ];
-            }
-
-            return [
-                'sukses' => true,
-                'voting_aktif' => false,
-                'pesan' => 'Status voting belum diatur'
-            ];
-        } catch (PDOException $e) {
+        if (!$status['sukses']) {
             return [
                 'sukses' => false,
                 'voting_aktif' => false,
-                'pesan' => 'Terjadi kesalahan saat mengecek status voting'
+                'dalam_periode_waktu' => false,
+                'pesan' => 'Pengaturan voting tidak tersedia'
             ];
         }
+
+        // Get the actual status values
+        return [
+            'sukses' => true,
+            'voting_aktif' => (bool)$status['voting_aktif'],
+            'dalam_periode_waktu' => (bool)$status['dalam_periode_waktu'],
+            'waktu_mulai' => $status['waktu_mulai'],
+            'waktu_selesai' => $status['waktu_selesai'],
+            'pesan' => $status['voting_aktif'] ? 'Voting sedang berlangsung' : 'Voting tidak aktif'
+        ];
     }
 }
 

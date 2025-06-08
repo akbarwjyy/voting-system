@@ -12,8 +12,10 @@ $candidateController = new CandidateController();
 
 // Cek status voting
 $statusVoting = $voteController->cekStatusVoting();
-if (!$statusVoting['voting_aktif']) {
-    $_SESSION['flash_message'] = 'Voting sedang tidak aktif!';
+$isVotingActive = $statusVoting['sukses'] && $statusVoting['voting_aktif'];
+
+if (!$isVotingActive) {
+    $_SESSION['flash_message'] = $statusVoting['pesan'] ?? 'Voting sedang tidak aktif!';
     $_SESSION['flash_type'] = 'error';
     header('Location: ../views/user/dashboard.php');
     exit();
@@ -33,49 +35,65 @@ $customCSS = '<style>
 include('../views/includes/header.php');
 ?>
 
+<!-- Proses form jika ada POST request -->
+<?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kandidat_id'], $_POST['konfirmasi'])) {
+    $result = $voteController->prosesVoting($_SESSION['user_id'], $_POST['kandidat_id']);
+    if ($result['sukses']) {
+        $_SESSION['flash_message'] = $result['pesan'];
+        $_SESSION['flash_type'] = 'success';
+        header('Location: ../views/user/dashboard.php');
+        exit();
+    } else {
+        $_SESSION['flash_message'] = $result['pesan'];
+        $_SESSION['flash_type'] = 'error';
+    }
+}
+?>
+
 <!-- Main Content -->
 <div class="max-w-7xl mx-auto py-6 px-4">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">Pilih Kandidat</h1>
+
+    <?php if (isset($_SESSION['flash_message'])): ?>
+        <div class="mb-4 p-4 rounded-lg <?php echo $_SESSION['flash_type'] === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'; ?>">
+            <?php
+            echo $_SESSION['flash_message'];
+            unset($_SESSION['flash_message']);
+            unset($_SESSION['flash_type']);
+            ?>
+        </div>
+    <?php endif; ?>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <?php
         $kandidat = $candidateController->getDaftarKandidat();
         foreach ($kandidat as $k):
         ?>
-            <div class="kandidat-card bg-white rounded-lg shadow-md overflow-hidden cursor-pointer"
-                onclick="pilihKandidat(<?php echo $k['id']; ?>)">
+            <div class="kandidat-card bg-white rounded-lg shadow-md overflow-hidden">
                 <img src="/voting-system/assets/uploads/kandidat/<?php echo $k['foto']; ?>"
                     alt="<?php echo $k['nama']; ?>"
                     class="w-full h-48 object-cover">
                 <div class="p-4">
                     <h3 class="text-xl font-semibold text-gray-800"><?php echo $k['nama']; ?></h3>
                     <p class="text-gray-600 mt-2"><?php echo $k['visi']; ?></p>
-                    <button class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">
-                        <i class="fas fa-check-circle mr-2"></i>Pilih Kandidat
-                    </button>
+
+                    <!-- Form untuk memilih kandidat -->
+                    <form method="POST" action="" class="mt-4">
+                        <input type="hidden" name="kandidat_id" value="<?php echo $k['id']; ?>">
+                        <input type="hidden" name="konfirmasi" value="1">
+
+                        <!-- Tombol konfirmasi -->
+                        <button type="submit"
+                            onclick="return confirm('Apakah Anda yakin memilih kandidat ini? Pilihan tidak dapat diubah setelah dikonfirmasi.');"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">
+                            <i class="fas fa-check-circle mr-2"></i>Pilih Kandidat
+                        </button>
+                    </form>
                 </div>
             </div>
         <?php endforeach; ?>
     </div>
 </div>
 
-<!-- Modal konfirmasi voting -->
-<div id="konfirmasiModal" class="modal-backdrop hidden fixed inset-0 flex items-center justify-center z-50">
-    <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-md mx-4">
-        <h3 class="text-xl font-bold text-gray-800 mb-4">Konfirmasi Pilihan</h3>
-        <p class="text-gray-600">Apakah Anda yakin dengan pilihan Anda? Pilihan tidak dapat diubah setelah dikonfirmasi.</p>
-        <div class="mt-6 flex justify-end space-x-3">
-            <button onclick="batalPilih()" class="px-4 py-2 text-gray-600 hover:text-gray-800">
-                Batal
-            </button>
-            <button onclick="konfirmasiPilih()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
-                Ya, Saya Yakin
-            </button>
-        </div>
-    </div>
-</div>
-
-<?php
-$customJS = '<script src="/voting-system/assets/js/voting.js"></script>';
-include('../views/includes/footer.php');
-?>
+<?php include('../views/includes/footer.php'); ?>
