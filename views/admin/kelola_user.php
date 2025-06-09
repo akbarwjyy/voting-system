@@ -49,16 +49,15 @@ $users = $adminController->getDaftarUser();
     <nav class="bg-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="dashboard.php" class="text-2xl font-semibold text-gray-800">
+                <div class="flex items-center"> <a href="dashboard.php" class="text-2xl font-semibold text-gray-800">
                         <i class="fas fa-vote-yea text-blue-600 mr-2"></i>
-                        Admin Panel
+                        E-Voting
                     </a>
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="dashboard.php" class="text-blue-600 hover:text-blue-700">
                         <i class="fas fa-arrow-left mr-1"></i>
-                        Kembali ke Dashboard
+                        Kembali
                     </a>
                     <span class="text-gray-600">
                         <i class="fas fa-user mr-2"></i>

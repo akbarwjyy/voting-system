@@ -27,25 +27,39 @@ if (session_status() === PHP_SESSION_NONE) {
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
         <div class="loading-spinner"></div>
-    </div>
-
-    <!-- Navbar -->
-    <nav class="bg-white shadow-lg">
+    </div> <!-- Navbar -->
+    <nav class="bg-white shadow-lg sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between h-16">
-                <div class="flex items-center"> <a href="<?php echo ROOT_PATH . (isset($_SESSION['user_type']) ? ($_SESSION['user_type'] === 'admin' ? '/views/admin/dashboard.php' : '/views/user/dashboard.php') : '/index.php'); ?>"
+                <div class="flex items-center">
+                    <a href="<?php echo ROOT_PATH . (isset($_SESSION['user_type']) ? ($_SESSION['user_type'] === 'admin' ? '/views/admin/dashboard.php' : '/views/user/dashboard.php') : '/index.php'); ?>"
                         class="text-2xl font-semibold text-gray-800">
                         <i class="fas fa-vote-yea text-blue-600 mr-2"></i>
-                        <?php echo isset($_SESSION['user_type']) ? ($_SESSION['user_type'] === 'admin' ? 'Admin Panel' : 'Panel Pemilih') : 'E-Voting'; ?>
+                        E-Voting
                     </a>
                 </div>
 
                 <?php if (isset($_SESSION['user_type'])): ?>
                     <div class="flex items-center space-x-4">
+                        <?php
+                        $currentFile = basename($_SERVER['PHP_SELF']);
+                        $isDashboard = $currentFile === 'dashboard.php';
+                        $dashboardPath = $_SESSION['user_type'] === 'admin' ?
+                            ROOT_PATH . '/views/admin/dashboard.php' :
+                            ROOT_PATH . '/views/user/dashboard.php';
+
+                        if (!$isDashboard):
+                        ?>
+                            <a href="<?php echo $dashboardPath; ?>" class="text-blue-600 hover:text-blue-700">
+                                <i class="fas fa-arrow-left mr-1"></i>
+                                Kembali
+                            </a>
+                        <?php endif; ?>
                         <span class="text-gray-600">
                             <i class="fas fa-user mr-2"></i>
                             <?php echo isset($_SESSION['admin_username']) ? $_SESSION['admin_username'] : $_SESSION['user_nama']; ?>
-                        </span> <a href="<?php echo ROOT_PATH; ?>/logout.php" class="text-red-600 hover:text-red-700">
+                        </span>
+                        <a href="<?php echo ROOT_PATH; ?>/logout.php" class="text-red-600 hover:text-red-700">
                             <i class="fas fa-sign-out-alt mr-1"></i>
                             Logout
                         </a>
