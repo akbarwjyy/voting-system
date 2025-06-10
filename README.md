@@ -1,4 +1,4 @@
-# 🗳️ E-Voting OSIS - Sistem Pemilihan Online
+# 🗳️ E-Voting - Sistem Pemilihan Online
 
 Aplikasi E-Voting berbasis web untuk pemilihan. Dibangun menggunakan PHP dan MySQL dengan tampilan modern menggunakan Tailwind CSS.
 
