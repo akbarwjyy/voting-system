@@ -44,9 +44,9 @@ if (isset($_SESSION['user_type'])) {
             <p class="text-xl text-blue-100 mb-2 hover:text-purple-200 transition-colors duration-300">
                 Pemilihan Ketua OSIS 2025
             </p>
-            <p class="text-lg text-blue-200 hover:text-purple-300 transition-colors duration-300">
+            <!-- <p class="text-lg text-blue-200 hover:text-purple-300 transition-colors duration-300">
                 SMA Negeri 1 Jakarta
-            </p>
+            </p> -->
         </div> <!-- Main Card -->
         <div class="max-w-md mx-auto bg-white/95 rounded-2xl shadow-2xl p-8 backdrop-blur-sm hover:bg-white/100 transition-all duration-300 transform hover:-translate-y-1">
             <div class="text-center mb-8">
