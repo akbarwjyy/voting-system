@@ -143,47 +143,60 @@ include('../includes/header.php');
                 </div>
             </form>
         </div>
-    <?php else: ?>
-        <!-- Daftar Kandidat -->
+    <?php else: ?> <!-- Daftar Kandidat -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <?php
             $kandidat_list = $candidateController->getDaftarKandidat();
             foreach ($kandidat_list as $k):
-            ?>
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <img src="/voting-system/assets/uploads/kandidat/<?php echo htmlspecialchars($k['foto']); ?>"
-                        alt="Foto <?php echo htmlspecialchars($k['nama']); ?>"
-                        class="w-full h-48 object-cover">
-                    <div class="p-4">
-                        <div class="flex justify-between items-start">
-                            <h3 class="text-xl font-semibold text-gray-800">
+            ?> <div class="bg-white rounded-xl shadow-md overflow-hidden group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <!-- Image Container -->
+                    <div class="relative overflow-hidden h-72">
+                        <img src="/voting-system/assets/uploads/kandidat/<?php echo htmlspecialchars($k['foto']); ?>"
+                            alt="Foto <?php echo htmlspecialchars($k['nama']); ?>"
+                            class="w-full h-full object-cover object-center transform group-hover:scale-110 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <!-- Nomor Urut Badge -->
+                        <span class="absolute top-4 right-4 bg-indigo-600 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg transform -translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                            No. <?php echo htmlspecialchars($k['no_urut']); ?>
+                        </span>
+                    </div>
+
+                    <div class="p-6">
+                        <!-- Header with Name -->
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold text-gray-800 group-hover:text-indigo-600 transition-colors duration-300">
                                 <?php echo htmlspecialchars($k['nama']); ?>
                             </h3>
-                            <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
-                                No. <?php echo htmlspecialchars($k['no_urut']); ?>
-                            </span>
                         </div>
 
-                        <div class="mt-2">
-                            <h4 class="font-semibold">Visi:</h4>
-                            <p class="text-gray-600"><?php echo nl2br(htmlspecialchars($k['visi'])); ?></p>
+                        <!-- Visi & Misi -->
+                        <div class="space-y-4">
+                            <div class="bg-indigo-50 rounded-lg p-4 transform group-hover:-translate-y-1 transition-transform duration-300">
+                                <h4 class="font-semibold text-indigo-800 mb-2">Visi:</h4>
+                                <p class="text-gray-700 text-sm line-clamp-3 group-hover:line-clamp-none transition-all duration-300">
+                                    <?php echo nl2br(htmlspecialchars($k['visi'])); ?>
+                                </p>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-4 transform group-hover:-translate-y-1 transition-transform duration-300">
+                                <h4 class="font-semibold text-purple-800 mb-2">Misi:</h4>
+                                <p class="text-gray-700 text-sm line-clamp-3 group-hover:line-clamp-none transition-all duration-300">
+                                    <?php echo nl2br(htmlspecialchars($k['misi'])); ?>
+                                </p>
+                            </div>
                         </div>
 
-                        <div class="mt-2">
-                            <h4 class="font-semibold">Misi:</h4>
-                            <p class="text-gray-600"><?php echo nl2br(htmlspecialchars($k['misi'])); ?></p>
-                        </div>
-
-                        <div class="mt-4 flex justify-end space-x-2">
+                        <!-- Action Buttons -->
+                        <div class="mt-6 flex justify-end space-x-3">
                             <a href="?action=edit&id=<?php echo $k['id']; ?>"
-                                class="text-blue-600 hover:text-blue-800">
-                                <i class="fas fa-edit"></i> Edit
+                                class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors duration-300">
+                                <i class="fas fa-edit mr-2"></i> Edit
                             </a>
                             <form method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kandidat ini?');">
                                 <input type="hidden" name="action" value="hapus">
                                 <input type="hidden" name="id" value="<?php echo $k['id']; ?>">
-                                <button type="submit" class="text-red-600 hover:text-red-800">
-                                    <i class="fas fa-trash"></i> Hapus
+                                <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-300">
+                                    <i class="fas fa-trash mr-2"></i> Hapus
                                 </button>
                             </form>
                         </div>
