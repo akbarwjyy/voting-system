@@ -23,7 +23,7 @@ Aplikasi E-Voting berbasis web untuk pemilihan. Dibangun menggunakan PHP dan MyS
 1. Clone repository ini ke direktori web server Anda:
 
 ```bash
-git clone https://github.com/username/e-voting-osis.git
+git clone https://github.com/akbarwjyy/voting-system.git
 ```
 
 2. Import database menggunakan file SQL yang disediakan
